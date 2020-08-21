@@ -60,12 +60,16 @@ OPTIONS
 	content of each file becomes its own paragraph.
 
 -S[<keyid>]::
---gpg-sign[=<keyid>]::
---no-gpg-sign::
-	GPG-sign commits. The `keyid` argument is optional and
+--sign[=<keyid>]::
+--no-sign::
+--gpg-sign[=<keyid>] (deprecated)::
+--no-gpg-sign (deprecated)::
+	Sign commits. The `keyid` argument is optional and
 	defaults to the committer identity; if specified, it must be
-	stuck to the option without a space. `--no-gpg-sign` is useful to
-	countermand a `--gpg-sign` option given earlier on the command line.
+	stuck to the option without a space. `--no-sign` is useful to
+	countermand a `--sign` option given earlier on the command line.
+	Do not sign commit, to countermand both '--sign' or the
+	deprecated '--gpg-sign' option given earlier on the command line.
 
 Commit Information
 ------------------

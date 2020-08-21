@@ -1,0 +1,63 @@
+signing.default::
+	The default signing format to use when signing commits and tags.
+	The value must be one of: "openpgp" or "x509".
+	The default value is "openpgp".
++
+The default executable to run for "openpgp" is "`gpg`", for "x509" is
+"`gpgsm`".
+
+signing.openpgp.program::
+	Use this custom program instead of "`gpg`" found on `$PATH` when
+	making or verifying an OpenPGP signature. The program must support
+	the same command-line interface as GPG, namely, to verify a detached
+	signature, "`gpg --verify $file - <$signature`" is run, and the
+	program is expected to signal a good signature by exiting with
+	code 0, and to generate an ASCII-armored detached signature, the
+	standard input of "`gpg -bsau $key`" is fed with the contents to be
+	signed, and the program is expected to send the result to its
+	standard output.
+
+signing.openpgp.signingIdentity::
+	If linkgit:git-tag[1] or linkgit:git-commit[1] is not selecting
+	automatically the identity you want when creating a signed tag or
+	commit, you may override the default selection with this variable.
+	This option is passed unchanged as the `--local-user` parameter, so
+	you may specify a key using any method that "`gpg`" supports.
+
+signing.openpgp.keyring::
+	Use this to specify the path to a custom keyring of public keys to
+	use when verifying signatures made with OpenPGP. This option is
+	passed unchanged as the `--keyring` parameter to "`gpg`".
+
+signing.openpgp.noDefaultKeyring::
+	When `signing.openpgp.keyring` is set, this boolean, when set to
+	true, causes the `--no-default-keyring` option to be passed to
+	"`gpg`". When set to false, the keyring specified by
+	`signing.openpgp.keyring` will be used in addition to the default
+	public keyring.
+
+signing.openpgp.minTrustLevel::
+	Specifies a minimum trust level for signature verification.  If
+	this option is unset, then signature verification for merge
+	operations require a key with at least `marginal` trust.  Other
+	operations that perform signature verification require a key
+	with at least `undefined` trust.  Setting this option overrides
+	the required trust-level for all operations.  Supported values,
+	in increasing order of significance:
++
+* `undefined`
+* `never`
+* `marginal`
+* `fully`
+* `ultimate`
+
+signing.x509.program::
+	Use this custom program instead of "`gpgsm`" found on `$PATH` when
+	making or verifying an x.509 signature.
+
+signing.x509.signingIdentity::
+	If linkgit:git-tag[1] or linkgit:git-commit[1] is not selecting
+	automatically the identity you want when creating a signed tag or
+	commit, you may override the default selection with this variable.
+	This option is passed unchanged as the `--local-user` parameter, so
+	you may specify a key using any method that "`gpgsm`" supports.

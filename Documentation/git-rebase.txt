@@ -385,13 +385,15 @@ See also INCOMPATIBLE OPTIONS below.
 	result of auto-conflict resolution if possible.
 
 -S[<keyid>]::
---gpg-sign[=<keyid>]::
---no-gpg-sign::
-	GPG-sign commits. The `keyid` argument is optional and
+--sign[=<keyid>]::
+--no-sign::
+--gpg-sign[=<keyid>] (deprecated)::
+--no-gpg-sign (deprecated)::
+	Sign commits. The `keyid` argument is optional and
 	defaults to the committer identity; if specified, it must be
-	stuck to the option without a space. `--no-gpg-sign` is useful to
-	countermand both `commit.gpgSign` configuration variable, and
-	earlier `--gpg-sign`.
+	stuck to the option without a space. `--no-sign` is useful to
+	countermand both `commit.sign` configuration variable, and
+	earlier `--sign`.
 
 -q::
 --quiet::
