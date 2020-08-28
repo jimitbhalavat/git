@@ -2,9 +2,9 @@
 
 test_description='pull signature verification tests'
 . ./test-lib.sh
-. "$TEST_DIRECTORY/lib-gpg.sh"
+. "$TEST_DIRECTORY/lib.sh"
 
-test_expect_success GPG 'create repositories with signed commits' '
+test_expect_success 'create repositories with signed commits' '
 	echo 1 >a && git add a &&
 	test_tick && git commit -m initial &&
 	git tag initial &&
@@ -42,111 +42,111 @@ test_expect_success GPG 'create repositories with signed commits' '
 	)
 '
 
-test_expect_success GPG 'pull unsigned commit with --verify-signatures' '
+test_expect_success 'pull unsigned commit with --verify-signatures' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	test_must_fail git pull --ff-only --verify-signatures unsigned 2>pullerror &&
-	test_i18ngrep "does not have a GPG signature" pullerror
+	test_i18ngrep "does not have a signature" pullerror
 '
 
-test_expect_success GPG 'pull commit with bad signature with --verify-signatures' '
+test_expect_success 'pull commit with bad signature with --verify-signatures' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	test_must_fail git pull --ff-only --verify-signatures bad 2>pullerror &&
-	test_i18ngrep "has a bad GPG signature" pullerror
+	test_i18ngrep "has a bad signature" pullerror
 '
 
-test_expect_success GPG 'pull commit with untrusted signature with --verify-signatures' '
+test_expect_success 'pull commit with untrusted signature with --verify-signatures' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	test_must_fail git pull --ff-only --verify-signatures untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=ultimate' '
+test_expect_success 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=ultimate' '
 	test_when_finished "git reset --hard && git checkout initial" &&
-	test_config gpg.minTrustLevel ultimate &&
+	test_config signing.openpgp.minTrustLevel ultimate &&
 	test_must_fail git pull --ff-only --verify-signatures untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=marginal' '
+test_expect_success 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=marginal' '
 	test_when_finished "git reset --hard && git checkout initial" &&
-	test_config gpg.minTrustLevel marginal &&
+	test_config signing.openpgp.minTrustLevel marginal &&
 	test_must_fail git pull --ff-only --verify-signatures untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=undefined' '
+test_expect_success 'pull commit with untrusted signature with --verify-signatures and minTrustLevel=undefined' '
 	test_when_finished "git reset --hard && git checkout initial" &&
-	test_config gpg.minTrustLevel undefined &&
+	test_config signing.openpgp.minTrustLevel undefined &&
 	git pull --ff-only --verify-signatures untrusted >pulloutput &&
-	test_i18ngrep "has a good GPG signature" pulloutput
+	test_i18ngrep "has a good signature" pulloutput
 '
 
-test_expect_success GPG 'pull signed commit with --verify-signatures' '
+test_expect_success 'pull signed commit with --verify-signatures' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	git pull --verify-signatures signed >pulloutput &&
-	test_i18ngrep "has a good GPG signature" pulloutput
+	test_i18ngrep "has a good signature" pulloutput
 '
 
-test_expect_success GPG 'pull commit with bad signature without verification' '
+test_expect_success 'pull commit with bad signature without verification' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	git pull --ff-only bad 2>pullerror
 '
 
-test_expect_success GPG 'pull commit with bad signature with --no-verify-signatures' '
+test_expect_success 'pull commit with bad signature with --no-verify-signatures' '
 	test_when_finished "git reset --hard && git checkout initial" &&
 	test_config merge.verifySignatures true &&
 	test_config pull.verifySignatures true &&
 	git pull --ff-only --no-verify-signatures bad 2>pullerror
 '
 
-test_expect_success GPG 'pull unsigned commit into unborn branch' '
+test_expect_success 'pull unsigned commit into unborn branch' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
 	test_must_fail \
 		git -C empty-repo pull --verify-signatures ..  2>pullerror &&
-	test_i18ngrep "does not have a GPG signature" pullerror
+	test_i18ngrep "does not have a signature" pullerror
 '
 
-test_expect_success GPG 'pull commit into unborn branch with bad signature and --verify-signatures' '
+test_expect_success 'pull commit into unborn branch with bad signature and --verify-signatures' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
 	test_must_fail \
 		git -C empty-repo pull --ff-only --verify-signatures ../bad 2>pullerror &&
-	test_i18ngrep "has a bad GPG signature" pullerror
+	test_i18ngrep "has a bad signature" pullerror
 '
 
-test_expect_success GPG 'pull commit into unborn branch with untrusted signature and --verify-signatures' '
+test_expect_success 'pull commit into unborn branch with untrusted signature and --verify-signatures' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
 	test_must_fail \
 		git -C empty-repo pull --ff-only --verify-signatures ../untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=ultimate' '
+test_expect_success 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=ultimate' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
-	test_config_global gpg.minTrustLevel ultimate &&
+	test_config_global signing.openpgp.minTrustLevel ultimate &&
 	test_must_fail \
 		git -C empty-repo pull --ff-only --verify-signatures ../untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=marginal' '
+test_expect_success 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=marginal' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
-	test_config_global gpg.minTrustLevel marginal &&
+	test_config_global signing.openpgp.minTrustLevel marginal &&
 	test_must_fail \
 		git -C empty-repo pull --ff-only --verify-signatures ../untrusted 2>pullerror &&
-	test_i18ngrep "has an untrusted GPG signature" pullerror
+	test_i18ngrep "has an untrusted signature" pullerror
 '
 
-test_expect_success GPG 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=undefined' '
+test_expect_success 'pull commit into unborn branch with untrusted signature and --verify-signatures and minTrustLevel=undefined' '
 	test_when_finished "rm -rf empty-repo" &&
 	git init empty-repo &&
-	test_config_global gpg.minTrustLevel undefined &&
+	test_config_global signing.openpgp.minTrustLevel undefined &&
 	git -C empty-repo pull --ff-only --verify-signatures ../untrusted >pulloutput &&
-	test_i18ngrep "has a good GPG signature" pulloutput
+	test_i18ngrep "has a good signature" pulloutput
 '
 
 test_done

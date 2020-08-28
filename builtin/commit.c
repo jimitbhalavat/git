@@ -29,7 +29,7 @@
 #include "unpack-trees.h"
 #include "quote.h"
 #include "submodule.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "column.h"
 #include "sequencer.h"
 #include "mailmap.h"
@@ -1476,7 +1476,7 @@ static int git_commit_config(const char *k, const char *v, void *cb)
 	}
 	if (!strcmp(k, "commit.cleanup"))
 		return git_config_string(&cleanup_arg, k, v);
-	if (!strcmp(k, "commit.gpgsign")) {
+	if (!strcmp(k, "commit.sign") || !strcmp(k, "commit.sign")) {
 		sign_commit = git_config_bool(k, v) ? "" : NULL;
 		return 0;
 	}
@@ -1486,7 +1486,7 @@ static int git_commit_config(const char *k, const char *v, void *cb)
 		return 0;
 	}
 
-	status = git_gpg_config(k, v, NULL);
+	status = git_config(k, v, NULL);
 	if (status)
 		return status;
 	return git_status_config(k, v, s);
@@ -1514,8 +1514,8 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		OPT_BOOL('e', "edit", &edit_flag, N_("force edit of commit")),
 		OPT_CLEANUP(&cleanup_arg),
 		OPT_BOOL(0, "status", &include_status, N_("include status in commit message template")),
-		{ OPTION_STRING, 'S', "gpg-sign", &sign_commit, N_("key-id"),
-		  N_("GPG sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
+		{ OPTION_STRING, 'S', "sign", &sign_commit, N_("key-id"),
+		  N_("sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 		/* end commit message options */
 
 		OPT_GROUP(N_("Commit contents options")),
@@ -1666,8 +1666,8 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 	}
 
 	if (amend) {
-		const char *exclude_gpgsig[3] = { "gpgsig", "gpgsig-sha256", NULL };
-		extra = read_commit_extra_headers(current_head, exclude_gpgsig);
+		const char *exclude_sig[3] = { "gpgsig", "gpgsig-sha256", NULL };
+		extra = read_commit_extra_headers(current_head, exclude_sig);
 	} else {
 		struct commit_extra_header **tail = &extra;
 		append_merge_tag_headers(parents, &tail);

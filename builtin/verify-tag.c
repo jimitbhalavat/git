@@ -11,7 +11,7 @@
 #include "tag.h"
 #include "run-command.h"
 #include "parse-options.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "ref-filter.h"
 
 static const char * const verify_tag_usage[] = {
@@ -21,7 +21,7 @@ static const char * const verify_tag_usage[] = {
 
 static int git_verify_tag_config(const char *var, const char *value, void *cb)
 {
-	int status = git_gpg_config(var, value, cb);
+	int status = git_config(var, value, cb);
 	if (status)
 		return status;
 	return git_default_config(var, value, cb);
@@ -34,7 +34,7 @@ int cmd_verify_tag(int argc, const char **argv, const char *prefix)
 	struct ref_format format = REF_FORMAT_INIT;
 	const struct option verify_tag_options[] = {
 		OPT__VERBOSE(&verbose, N_("print tag contents")),
-		OPT_BIT(0, "raw", &flags, N_("print raw gpg status output"), GPG_VERIFY_RAW),
+		OPT_BIT(0, "raw", &flags, N_("print raw sig status output"), GPG_VERIFY_RAW),
 		OPT_STRING(0, "format", &format.format, N_("format"), N_("format to use for the output")),
 		OPT_END()
 	};
@@ -65,7 +65,7 @@ int cmd_verify_tag(int argc, const char **argv, const char *prefix)
 			continue;
 		}
 
-		if (gpg_verify_tag(&oid, name, flags)) {
+		if (sig_verify_tag(&oid, name, flags)) {
 			had_error = 1;
 			continue;
 		}

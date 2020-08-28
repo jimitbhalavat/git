@@ -90,7 +90,7 @@ struct rebase_options {
 	int allow_rerere_autoupdate;
 	int keep_empty;
 	int autosquash;
-	char *gpg_sign_opt;
+	char *sign_opt;
 	int autostash;
 	char *cmd;
 	int allow_empty_message;
@@ -130,7 +130,7 @@ static struct replay_opts get_replay_opts(const struct rebase_options *opts)
 	replay.quiet = !(opts->flags & REBASE_NO_QUIET);
 	replay.verbose = opts->flags & REBASE_VERBOSE;
 	replay.reschedule_failed_exec = opts->reschedule_failed_exec;
-	replay.gpg_sign = xstrdup_or_null(opts->gpg_sign_opt);
+	replay.sign = xstrdup_or_null(opts->sign_opt);
 	replay.strategy = opts->strategy;
 	if (opts->strategy_opts)
 		parse_strategy_opts(&replay, opts->strategy_opts);
@@ -521,8 +521,8 @@ int cmd_rebase__interactive(int argc, const char **argv, const char *prefix)
 		  N_("the upstream commit"), PARSE_OPT_NONEG, parse_opt_commit,
 		  0 },
 		OPT_STRING(0, "head-name", &opts.head_name, N_("head-name"), N_("head name")),
-		{ OPTION_STRING, 'S', "gpg-sign", &opts.gpg_sign_opt, N_("key-id"),
-			N_("GPG-sign commits"),
+		{ OPTION_STRING, 'S', "sign", &opts.sign_opt, N_("key-id"),
+			N_("sign commits"),
 			PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 		OPT_STRING(0, "strategy", &opts.strategy, N_("strategy"),
 			   N_("rebase strategy")),
@@ -655,13 +655,13 @@ static int read_basic_state(struct rebase_options *opts)
 				  "'%s'"), buf.buf);
 	}
 
-	if (file_exists(state_dir_path("gpg_sign_opt", opts))) {
+	if (file_exists(state_dir_path("sign_opt", opts))) {
 		strbuf_reset(&buf);
-		if (!read_oneliner(&buf, state_dir_path("gpg_sign_opt", opts),
+		if (!read_oneliner(&buf, state_dir_path("sign_opt", opts),
 				   READ_ONELINER_WARN_MISSING))
 			return -1;
-		free(opts->gpg_sign_opt);
-		opts->gpg_sign_opt = xstrdup(buf.buf);
+		free(opts->sign_opt);
+		opts->sign_opt = xstrdup(buf.buf);
 	}
 
 	if (file_exists(state_dir_path("strategy", opts))) {
@@ -710,9 +710,9 @@ static int rebase_write_basic_state(struct rebase_options *opts)
 			   "-%s-rerere-autoupdate",
 			   opts->allow_rerere_autoupdate == RERERE_AUTOUPDATE ?
 				"" : "-no");
-	if (opts->gpg_sign_opt)
-		write_file(state_dir_path("gpg_sign_opt", opts), "%s",
-			   opts->gpg_sign_opt);
+	if (opts->sign_opt)
+		write_file(state_dir_path("sign_opt", opts), "%s",
+			   opts->sign_opt);
 	if (opts->signoff)
 		write_file(state_dir_path("signoff", opts), "--signoff");
 
@@ -816,8 +816,8 @@ static int run_am(struct rebase_options *opts)
 	if (opts->action && !strcmp("continue", opts->action)) {
 		argv_array_push(&am.args, "--resolved");
 		argv_array_pushf(&am.args, "--resolvemsg=%s", resolvemsg);
-		if (opts->gpg_sign_opt)
-			argv_array_push(&am.args, opts->gpg_sign_opt);
+		if (opts->sign_opt)
+			argv_array_push(&am.args, opts->sign_opt);
 		status = run_command(&am);
 		if (status)
 			return status;
@@ -908,8 +908,8 @@ static int run_am(struct rebase_options *opts)
 		argv_array_push(&am.args, "--rerere-autoupdate");
 	else if (opts->allow_rerere_autoupdate == RERERE_NOAUTOUPDATE)
 		argv_array_push(&am.args, "--no-rerere-autoupdate");
-	if (opts->gpg_sign_opt)
-		argv_array_push(&am.args, opts->gpg_sign_opt);
+	if (opts->sign_opt)
+		argv_array_push(&am.args, opts->sign_opt);
 	status = run_command(&am);
 	unlink(rebased_patches);
 	free(rebased_patches);
@@ -938,11 +938,11 @@ static int run_specific_rebase(struct rebase_options *opts, enum action action)
 			setenv("GIT_SEQUENCE_EDITOR", ":", 1);
 			opts->autosquash = 0;
 		}
-		if (opts->gpg_sign_opt) {
+		if (opts->sign_opt) {
 			/* remove the leading "-S" */
-			char *tmp = xstrdup(opts->gpg_sign_opt + 2);
-			free(opts->gpg_sign_opt);
-			opts->gpg_sign_opt = tmp;
+			char *tmp = xstrdup(opts->sign_opt + 2);
+			free(opts->sign_opt);
+			opts->sign_opt = tmp;
 		}
 
 		status = run_sequencer_rebase(opts, action);
@@ -988,7 +988,7 @@ static int run_specific_rebase(struct rebase_options *opts, enum action action)
 			"--rerere-autoupdate" : "--no-rerere-autoupdate" : "");
 	add_var(&script_snippet, "keep_empty", opts->keep_empty ? "yes" : "");
 	add_var(&script_snippet, "autosquash", opts->autosquash ? "t" : "");
-	add_var(&script_snippet, "gpg_sign_opt", opts->gpg_sign_opt);
+	add_var(&script_snippet, "sign_opt", opts->sign_opt);
 	add_var(&script_snippet, "cmd", opts->cmd);
 	add_var(&script_snippet, "allow_empty_message",
 		opts->allow_empty_message ?  "--allow-empty-message" : "");
@@ -1066,9 +1066,9 @@ static int rebase_config(const char *var, const char *value, void *data)
 		return 0;
 	}
 
-	if (!strcmp(var, "commit.gpgsign")) {
-		free(opts->gpg_sign_opt);
-		opts->gpg_sign_opt = git_config_bool(var, value) ?
+	if (!strcmp(var, "commit.sign")) {
+		free(opts->sign_opt);
+		opts->sign_opt = git_config_bool(var, value) ?
 			xstrdup("-S") : NULL;
 		return 0;
 	}
@@ -1290,7 +1290,7 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 	struct strbuf buf = STRBUF_INIT;
 	struct object_id merge_base;
 	enum action action = ACTION_NONE;
-	const char *gpg_sign = NULL;
+	const char *sign = NULL;
 	struct string_list exec = STRING_LIST_INIT_NODUP;
 	const char *rebase_merges = NULL;
 	int fork_point = -1;
@@ -1377,8 +1377,8 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "autosquash", &options.autosquash,
 			 N_("move commits that begin with "
 			    "squash!/fixup! under -i")),
-		{ OPTION_STRING, 'S', "gpg-sign", &gpg_sign, N_("key-id"),
-			N_("GPG-sign commits"),
+		{ OPTION_STRING, 'S', "sign", &sign, N_("key-id"),
+			N_("Sign commits"),
 			PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 		OPT_AUTOSTASH(&options.autostash),
 		OPT_STRING_LIST('x', "exec", &exec, N_("exec"),
@@ -1417,9 +1417,9 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 
 	options.allow_empty_message = 1;
 	git_config(rebase_config, &options);
-	/* options.gpg_sign_opt will be either "-S" or NULL */
-	gpg_sign = options.gpg_sign_opt ? "" : NULL;
-	FREE_AND_NULL(options.gpg_sign_opt);
+	/* options.sign_opt will be either "-S" or NULL */
+	sign = options.sign_opt ? "" : NULL;
+	FREE_AND_NULL(options.sign_opt);
 
 	if (options.use_legacy_rebase ||
 	    !git_env_bool("GIT_TEST_REBASE_USE_BUILTIN", -1))
@@ -1657,8 +1657,8 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 	if (options.reapply_cherry_picks)
 		imply_merge(&options, "--reapply-cherry-picks");
 
-	if (gpg_sign)
-		options.gpg_sign_opt = xstrfmt("-S%s", gpg_sign);
+	if (sign)
+		options.sign_opt = xstrfmt("-S%s", sign);
 
 	if (exec.nr) {
 		int i;
@@ -2073,7 +2073,7 @@ cleanup:
 	strbuf_release(&buf);
 	strbuf_release(&revisions);
 	free(options.head_name);
-	free(options.gpg_sign_opt);
+	free(options.sign_opt);
 	free(options.cmd);
 	free(squash_onto_name);
 	return ret;

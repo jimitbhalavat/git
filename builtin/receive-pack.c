@@ -18,7 +18,7 @@
 #include "argv-array.h"
 #include "version.h"
 #include "tag.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "sigchain.h"
 #include "fsck.h"
 #include "tmp-objdir.h"
@@ -650,7 +650,7 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 		return;
 
 	if (!already_done) {
-		int bogs /* beginning_of_gpg_sig */;
+		int bogs /* beginning_of_sig */;
 
 		already_done = 1;
 		if (write_object_file(push_cert.buf, push_cert.len, "blob",

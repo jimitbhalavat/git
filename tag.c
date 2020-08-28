@@ -5,12 +5,12 @@
 #include "tree.h"
 #include "blob.h"
 #include "alloc.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "packfile.h"
 
 const char *tag_type = "tag";
 
-static int run_gpg_verify(const char *buf, unsigned long size, unsigned flags)
+static int run_sig_verify(const char *buf, unsigned long size, unsigned flags)
 {
 	struct signature_check sigc;
 	size_t payload_size;
@@ -36,7 +36,7 @@ static int run_gpg_verify(const char *buf, unsigned long size, unsigned flags)
 	return ret;
 }
 
-int gpg_verify_tag(const struct object_id *oid, const char *name_to_report,
+int sig_verify_tag(const struct object_id *oid, const char *name_to_report,
 		unsigned flags)
 {
 	enum object_type type;
@@ -59,7 +59,7 @@ int gpg_verify_tag(const struct object_id *oid, const char *name_to_report,
 				name_to_report :
 				find_unique_abbrev(oid, DEFAULT_ABBREV));
 
-	ret = run_gpg_verify(buf, size, flags);
+	ret = run_sig_verify(buf, size, flags);
 
 	free(buf);
 	return ret;

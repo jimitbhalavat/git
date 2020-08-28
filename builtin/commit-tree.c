@@ -11,7 +11,7 @@
 #include "tree.h"
 #include "builtin.h"
 #include "utf8.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "parse-options.h"
 
 static const char * const commit_tree_usage[] = {
@@ -38,7 +38,7 @@ static void new_parent(struct commit *parent, struct commit_list **parents_p)
 
 static int commit_tree_config(const char *var, const char *value, void *cb)
 {
-	int status = git_gpg_config(var, value, NULL);
+	int status = git_config(var, value, NULL);
 	if (status)
 		return status;
 	return git_default_config(var, value, cb);
@@ -117,8 +117,8 @@ int cmd_commit_tree(int argc, const char **argv, const char *prefix)
 		OPT_CALLBACK_F('F', NULL, &buffer, N_("file"),
 			N_("read commit log message from file"), PARSE_OPT_NONEG,
 			parse_file_arg_callback),
-		{ OPTION_STRING, 'S', "gpg-sign", &sign_commit, N_("key-id"),
-			N_("GPG sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
+		{ OPTION_STRING, 'S', "sign", &sign_commit, N_("key-id"),
+			N_("sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 		OPT_END()
 	};
 

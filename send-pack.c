@@ -13,7 +13,7 @@
 #include "transport.h"
 #include "version.h"
 #include "oid-array.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "cache.h"
 #include "shallow.h"
 

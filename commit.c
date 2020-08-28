@@ -10,7 +10,7 @@
 #include "revision.h"
 #include "notes.h"
 #include "alloc.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "mergesort.h"
 #include "commit-slab.h"
 #include "prio-queue.h"
@@ -963,10 +963,10 @@ cleanup_return:
 /*
  * Indexed by hash algorithm identifier.
  */
-static const char *gpg_sig_headers[] = {
+static const char *sig_headers[] = {
 	NULL,
-	"gpgsig",
-	"gpgsig-sha256",
+	"sig",
+	"sig-sha256",
 };
 
 static int do_sign_commit(struct strbuf *buf, const char *keyid)
@@ -974,8 +974,8 @@ static int do_sign_commit(struct strbuf *buf, const char *keyid)
 	struct strbuf sig = STRBUF_INIT;
 	int inspos, copypos;
 	const char *eoh;
-	const char *gpg_sig_header = gpg_sig_headers[hash_algo_by_ptr(the_hash_algo)];
-	int gpg_sig_header_len = strlen(gpg_sig_header);
+	const char *sig_header = sig_headers[hash_algo_by_ptr(the_hash_algo)];
+	int sig_header_len = strlen(sig_header);
 
 	/* find the end of the header */
 	eoh = strstr(buf->buf, "\n\n");
@@ -997,8 +997,8 @@ static int do_sign_commit(struct strbuf *buf, const char *keyid)
 		int len = (eol - bol) + !!*eol;
 
 		if (!copypos) {
-			strbuf_insert(buf, inspos, gpg_sig_header, gpg_sig_header_len);
-			inspos += gpg_sig_header_len;
+			strbuf_insert(buf, inspos, sig_header, sig_header_len);
+			inspos += sig_header_len;
 		}
 		strbuf_insertstr(buf, inspos++, " ");
 		strbuf_insert(buf, inspos, bol, len);
@@ -1017,8 +1017,8 @@ int parse_signed_commit(const struct commit *commit,
 	const char *buffer = get_commit_buffer(commit, &size);
 	int in_signature, saw_signature = -1;
 	const char *line, *tail;
-	const char *gpg_sig_header = gpg_sig_headers[hash_algo_by_ptr(the_hash_algo)];
-	int gpg_sig_header_len = strlen(gpg_sig_header);
+	const char *sig_header = sig_headers[hash_algo_by_ptr(the_hash_algo)];
+	int sig_header_len = strlen(sig_header);
 
 	line = buffer;
 	tail = buffer + size;
@@ -1031,9 +1031,9 @@ int parse_signed_commit(const struct commit *commit,
 		next = next ? next + 1 : tail;
 		if (in_signature && line[0] == ' ')
 			sig = line + 1;
-		else if (starts_with(line, gpg_sig_header) &&
-			 line[gpg_sig_header_len] == ' ')
-			sig = line + gpg_sig_header_len + 1;
+		else if (starts_with(line, sig_header) &&
+			 line[sig_header_len] == ' ')
+			sig = line + sig_header_len + 1;
 		if (sig) {
 			strbuf_add(signature, sig, next - sig);
 			saw_signature = 1;
@@ -1065,11 +1065,11 @@ int remove_signature(struct strbuf *buf)
 
 		if (in_signature && line[0] == ' ')
 			sig_end = next;
-		else if (starts_with(line, "gpgsig")) {
+		else if (starts_with(line, "sig")) {
 			int i;
 			for (i = 1; i < GIT_HASH_NALGOS; i++) {
 				const char *p;
-				if (skip_prefix(line, gpg_sig_headers[i], &p) &&
+				if (skip_prefix(line, sig_headers[i], &p) &&
 				    *p == ' ') {
 					sig_start = line;
 					sig_end = next;
@@ -1165,17 +1165,17 @@ void verify_merge_signature(struct commit *commit, int verbosity,
 	switch (signature_check.result) {
 	case 'G':
 		if (ret || (check_trust && signature_check.trust_level < TRUST_MARGINAL))
-			die(_("Commit %s has an untrusted GPG signature, "
+			die(_("Commit %s has an untrusted signature, "
 			      "allegedly by %s."), hex, signature_check.signer);
 		break;
 	case 'B':
-		die(_("Commit %s has a bad GPG signature "
+		die(_("Commit %s has a bad signature "
 		      "allegedly by %s."), hex, signature_check.signer);
 	default: /* 'N' */
-		die(_("Commit %s does not have a GPG signature."), hex);
+		die(_("Commit %s does not have a signature."), hex);
 	}
 	if (verbosity >= 0 && signature_check.result == 'G')
-		printf(_("Commit %s has a good GPG signature by %s\n"),
+		printf(_("Commit %s has a good signature by %s\n"),
 		       hex, signature_check.signer);
 
 	signature_check_clear(&signature_check);

@@ -130,7 +130,7 @@ struct am_state {
  */
 static void am_state_init(struct am_state *state)
 {
-	int gpgsign;
+	int sign_config;
 
 	memset(state, 0, sizeof(*state));
 
@@ -148,8 +148,8 @@ static void am_state_init(struct am_state *state)
 
 	argv_array_init(&state->git_apply_opts);
 
-	if (!git_config_get_bool("commit.gpgsign", &gpgsign))
-		state->sign_commit = gpgsign ? "" : NULL;
+	if (!git_config_get_bool("commit.sign", &sign_config) || !git_config_get_bool("commit.sign", &sign_config))
+		state->sign_commit = sign_config ? "" : NULL;
 }
 
 /**
@@ -2185,7 +2185,7 @@ static int git_am_config(const char *k, const char *v, void *cb)
 {
 	int status;
 
-	status = git_gpg_config(k, v, NULL);
+	status = git_config(k, v, NULL);
 	if (status)
 		return status;
 
@@ -2293,8 +2293,8 @@ int cmd_am(int argc, const char **argv, const char *prefix)
 		OPT_BOOL(0, "ignore-date", &state.ignore_date,
 			N_("use current timestamp for author date")),
 		OPT_RERERE_AUTOUPDATE(&state.allow_rerere_autoupdate),
-		{ OPTION_STRING, 'S', "gpg-sign", &state.sign_commit, N_("key-id"),
-		  N_("GPG-sign commits"),
+		{ OPTION_STRING, 'S', "sign", &state.sign_commit, N_("key-id"),
+		  N_("sign commits"),
 		  PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 		OPT_HIDDEN_BOOL(0, "rebasing", &state.rebasing,
 			N_("(internal use for git-rebase)")),

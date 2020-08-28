@@ -31,7 +31,7 @@
 #include "resolve-undo.h"
 #include "remote.h"
 #include "fmt-merge-msg.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "sequencer.h"
 #include "string-list.h"
 #include "packfile.h"
@@ -265,7 +265,7 @@ static struct option builtin_merge_options[] = {
 		      FF_ONLY, PARSE_OPT_NONEG),
 	OPT_RERERE_AUTOUPDATE(&allow_rerere_auto),
 	OPT_BOOL(0, "verify-signatures", &verify_signatures,
-		N_("verify that the named commit has a valid GPG signature")),
+		N_("verify that the named commit has a valid signature")),
 	OPT_CALLBACK('s', "strategy", &use_strategies, N_("strategy"),
 		N_("merge strategy to use"), option_parse_strategy),
 	OPT_CALLBACK('X', "strategy-option", &xopts, N_("option=value"),
@@ -286,8 +286,8 @@ static struct option builtin_merge_options[] = {
 	OPT_BOOL(0, "allow-unrelated-histories", &allow_unrelated_histories,
 		 N_("allow merging unrelated histories")),
 	OPT_SET_INT(0, "progress", &show_progress, N_("force progress reporting"), 1),
-	{ OPTION_STRING, 'S', "gpg-sign", &sign_commit, N_("key-id"),
-	  N_("GPG sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
+	{ OPTION_STRING, 'S', "sign", &sign_commit, N_("key-id"),
+	  N_("Sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
 	OPT_AUTOSTASH(&autostash),
 	OPT_BOOL(0, "overwrite-ignore", &overwrite_ignore, N_("update ignored files (default)")),
 	OPT_BOOL(0, "signoff", &signoff, N_("add Signed-off-by:")),
@@ -634,10 +634,10 @@ static int git_merge_config(const char *k, const char *v, void *cb)
 	} else if (!strcmp(k, "merge.defaulttoupstream")) {
 		default_to_upstream = git_config_bool(k, v);
 		return 0;
-	} else if (!strcmp(k, "commit.gpgsign")) {
+	} else if (!strcmp(k, "commit.sign") || !strcmp(k, "commit.sign")) {
 		sign_commit = git_config_bool(k, v) ? "" : NULL;
 		return 0;
-	} else if (!strcmp(k, "gpg.mintrustlevel")) {
+	} else if (!strcmp(k, "signing.openpgp.mintrustlevel")) {
 		check_trust_level = 0;
 	} else if (!strcmp(k, "merge.autostash")) {
 		autostash = git_config_bool(k, v);
@@ -647,7 +647,7 @@ static int git_merge_config(const char *k, const char *v, void *cb)
 	status = fmt_merge_msg_config(k, v, cb);
 	if (status)
 		return status;
-	status = git_gpg_config(k, v, NULL);
+	status = git_config(k, v, NULL);
 	if (status)
 		return status;
 	return git_diff_ui_config(k, v, cb);

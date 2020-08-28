@@ -5,7 +5,7 @@
 #include "tree.h"
 #include "strbuf.h"
 #include "decorate.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "string-list.h"
 #include "pretty.h"
 #include "commit-slab.h"
@@ -323,7 +323,7 @@ int remove_signature(struct strbuf *buf);
  * Check the signature of the given commit. The result of the check is stored
  * in sig->check_result, 'G' for a good signature, 'U' for a good signature
  * from an untrusted signer, 'B' for a bad signature and 'N' for no signature
- * at all.  This may allocate memory for sig->gpg_output, sig->gpg_status,
+ * at all.  This may allocate memory for sig->output, sig->status,
  * sig->signer and sig->key.
  */
 int check_commit_signature(const struct commit *commit, struct signature_check *sigc);

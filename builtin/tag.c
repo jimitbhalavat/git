@@ -16,7 +16,7 @@
 #include "parse-options.h"
 #include "diff.h"
 #include "revision.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "oid-array.h"
 #include "column.h"
 #include "ref-filter.h"
@@ -117,7 +117,7 @@ static int verify_tag(const char *name, const char *ref,
 	if (format->format)
 		flags = GPG_VERIFY_OMIT_STATUS;
 
-	if (gpg_verify_tag(oid, name, flags))
+	if (sig_verify_tag(oid, name, flags))
 		return -1;
 
 	if (format->format)
@@ -145,7 +145,7 @@ static int git_tag_config(const char *var, const char *value, void *cb)
 	int status;
 	struct ref_sorting **sorting_tail = (struct ref_sorting **)cb;
 
-	if (!strcmp(var, "tag.gpgsign")) {
+	if (!strcmp(var, "tag.sign")) {
 		config_sign_tag = git_config_bool(var, value);
 		return 0;
 	}
@@ -157,7 +157,7 @@ static int git_tag_config(const char *var, const char *value, void *cb)
 		return 0;
 	}
 
-	status = git_gpg_config(var, value, cb);
+	status = git_config(var, value, cb);
 	if (status)
 		return status;
 	if (!strcmp(var, "tag.forcesignannotated")) {
@@ -414,7 +414,7 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 			       N_("tag message"), PARSE_OPT_NONEG, parse_msg_arg),
 		OPT_FILENAME('F', "file", &msgfile, N_("read message from file")),
 		OPT_BOOL('e', "edit", &edit_flag, N_("force edit of tag message")),
-		OPT_BOOL('s', "sign", &opt.sign, N_("annotated and GPG-signed tag")),
+		OPT_BOOL('s', "sign", &opt.sign, N_("annotated and signed tag")),
 		OPT_CLEANUP(&cleanup_arg),
 		OPT_STRING('u', "local-user", &keyid, N_("key-id"),
 					N_("use another key to sign the tag")),

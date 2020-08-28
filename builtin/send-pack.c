@@ -12,7 +12,7 @@
 #include "transport.h"
 #include "version.h"
 #include "oid-array.h"
-#include "gpg-interface.h"
+#include "signing-interface.h"
 #include "gettext.h"
 #include "protocol.h"
 
@@ -101,11 +101,11 @@ static void print_helper_status(struct ref *ref)
 
 static int send_pack_config(const char *k, const char *v, void *cb)
 {
-	git_gpg_config(k, v, NULL);
+	git_config(k, v, NULL);
 
-	if (!strcmp(k, "push.gpgsign")) {
+	if (!strcmp(k, "push.sign")) {
 		const char *value;
-		if (!git_config_get_value("push.gpgsign", &value)) {
+		if (!git_config_get_value("push.sign", &value)) {
 			switch (git_parse_maybe_bool(value)) {
 			case 0:
 				args.push_cert = SEND_PACK_PUSH_CERT_NEVER;
@@ -165,7 +165,7 @@ int cmd_send_pack(int argc, const char **argv, const char *prefix)
 		OPT_BOOL('n' , "dry-run", &dry_run, N_("dry run")),
 		OPT_BOOL(0, "mirror", &send_mirror, N_("mirror all refs")),
 		OPT_BOOL('f', "force", &force_update, N_("force updates")),
-		OPT_CALLBACK_F(0, "signed", &push_cert, "(yes|no|if-asked)", N_("GPG sign the push"),
+		OPT_CALLBACK_F(0, "signed", &push_cert, "(yes|no|if-asked)", N_("sign the push"),
 		  PARSE_OPT_OPTARG, option_parse_push_signed),
 		OPT_STRING_LIST(0, "push-option", &push_options,
 				N_("server-specific"),

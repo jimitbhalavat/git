@@ -466,7 +466,7 @@ static int git_push_config(const char *k, const char *v, void *cb)
 	int *flags = cb;
 	int status;
 
-	status = git_gpg_config(k, v, NULL);
+	status = git_config(k, v, NULL);
 	if (status)
 		return status;
 
@@ -476,9 +476,9 @@ static int git_push_config(const char *k, const char *v, void *cb)
 		else
 			*flags &= ~TRANSPORT_PUSH_FOLLOW_TAGS;
 		return 0;
-	} else if (!strcmp(k, "push.gpgsign")) {
+	} else if (!strcmp(k, "push.sign")) {
 		const char *value;
-		if (!git_config_get_value("push.gpgsign", &value)) {
+		if (!git_config_get_value("push.sign", &value)) {
 			switch (git_parse_maybe_bool(value)) {
 			case 0:
 				set_push_cert_flags(flags, SEND_PACK_PUSH_CERT_NEVER);
@@ -564,7 +564,7 @@ int cmd_push(int argc, const char **argv, const char *prefix)
 		OPT_BIT(0, "no-verify", &flags, N_("bypass pre-push hook"), TRANSPORT_PUSH_NO_HOOK),
 		OPT_BIT(0, "follow-tags", &flags, N_("push missing but relevant tags"),
 			TRANSPORT_PUSH_FOLLOW_TAGS),
-		OPT_CALLBACK_F(0, "signed", &push_cert, "(yes|no|if-asked)", N_("GPG sign the push"),
+		OPT_CALLBACK_F(0, "signed", &push_cert, "(yes|no|if-asked)", N_("sign the push"),
 				PARSE_OPT_OPTARG, option_parse_push_signed),
 		OPT_BIT(0, "atomic", &flags, N_("request atomic transaction on remote side"), TRANSPORT_PUSH_ATOMIC),
 		OPT_STRING_LIST('o', "push-option", &push_options_cmdline, N_("server-specific"), N_("option to transmit")),
